@@ -57,3 +57,15 @@ To enable z1_sdk discovery from this project's root CMake:
 ```bash
 cmake -S . -B build-z1 -DENABLE_Z1_SDK=ON -DZ1_SDK_ARCH=x86_64
 ```
+
+This also builds:
+
+- `z1_lowcmd_development` from `example/lowcmd_development.cpp`
+
+Build and run:
+
+```bash
+cmake -S . -B build-z1 -DENABLE_Z1_SDK=ON -DZ1_SDK_ARCH=x86_64
+cmake --build build-z1 -j
+./build-z1/z1_lowcmd_development
+```
