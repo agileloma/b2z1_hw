@@ -4,6 +4,7 @@ project(b2z1_hw LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(ENABLE_Z1_SDK OFF CACHE BOOL "Enable optional vendored z1_sdk discovery")
 
 # Normalize host arch to the two supported vendor folders.
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
@@ -49,3 +50,26 @@ set_target_properties(b2_stand_example
     BUILD_RPATH "${UNITREE_SDK2_LIBDIR}"
     INSTALL_RPATH "${UNITREE_SDK2_LIBDIR}"
 )
+
+if(ENABLE_Z1_SDK)
+  set(Z1_SDK_ARCH "${_default_unitree_arch}" CACHE STRING "Architecture of vendored z1_sdk (x86_64 or aarch64)")
+  set_property(CACHE Z1_SDK_ARCH PROPERTY STRINGS x86_64 aarch64)
+  if(NOT Z1_SDK_ARCH STREQUAL "x86_64" AND NOT Z1_SDK_ARCH STREQUAL "aarch64")
+    message(FATAL_ERROR "Z1_SDK_ARCH must be 'x86_64' or 'aarch64', got '${Z1_SDK_ARCH}'.")
+  endif()
+
+  set(Z1_SDK_PREFIX "${CMAKE_SOURCE_DIR}/external/z1_sdk/${Z1_SDK_ARCH}" CACHE PATH "Prefix path of vendored z1_sdk")
+  set(Z1_SDK_CONFIG "${Z1_SDK_PREFIX}/lib/cmake/z1_sdk/z1_sdkConfig.cmake")
+
+  if(NOT EXISTS "${Z1_SDK_PREFIX}")
+    message(FATAL_ERROR "Vendored z1_sdk prefix not found: ${Z1_SDK_PREFIX}")
+  endif()
+
+  if(NOT EXISTS "${Z1_SDK_CONFIG}")
+    message(FATAL_ERROR "z1_sdkConfig.cmake not found at ${Z1_SDK_CONFIG}. Ensure external/z1_sdk/${Z1_SDK_ARCH} is populated.")
+  endif()
+
+  list(PREPEND CMAKE_PREFIX_PATH "${Z1_SDK_PREFIX}")
+  find_package(z1_sdk CONFIG REQUIRED)
+  message(STATUS "z1_sdk enabled from ${Z1_SDK_PREFIX}")
+endif()
